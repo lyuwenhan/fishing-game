@@ -53,22 +53,23 @@ function checkName (username) {
 	return checkString(username) && /^[\a-zA-Z_\-][\a-zA-Z_\-0-9]{0,19}$/.test(username)
 }
 
+const dataPath = "./data.json"
+
 function getData () {
 	try {
-		return toObject(JSON.parse(fs.readFileSync("./data.json", "utf8") || "{}"))
+		return toObject(JSON.parse(fs.readFileSync(dataPath, "utf8") || "{}"))
 	} catch {
 		return {}
 	}
 }
 const userData = getData();
 function saveData(){
-	fs.writeFileSync("./data.json", JSON.stringify(userData, null, 2));
+	fs.writeFileSync(dataPath, JSON.stringify(userData, null, 2));
 }
 app.use(cors());
 app.use(bodyParser.json());
 app.post("/api/", (req, res) => {
 	const receivedContent = req.body.content || {};
-	console.log(receivedContent);
 	if (receivedContent.type == "save") {
 		if (!checkName(receivedContent.name)) {
 			return res.json({
@@ -108,6 +109,7 @@ app.post("/api/", (req, res) => {
 			salt,
 			data: receivedContent.data
 		};
+		saveData();
 		return res.json({
 			type: "successed"
 		});
@@ -330,7 +332,6 @@ if (port_http !== "only") {
 		}).on("error", err => {
 			if (err.code === "EADDRINUSE") {
 				console.log(`http 重定向服务器启动失败: http://localhost:${port_http}`);
-				fs.writeFileSync(`error/normal/error_${Date.now()}.log`, `Normal Error (${(new Date).toString()})\nfrom: node.js\n${err}`);
 				process.exit(1)
 			} else {
 				throw err

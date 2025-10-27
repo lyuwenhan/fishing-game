@@ -6,22 +6,43 @@ function toObject (obj) {
 	return isObject(obj) ? obj : {}
 }
 
+function send (content) {
+	return fetch(`/api`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({
+			content
+		})
+	}).then(response => response.json())
+}
 var store;
 try {
 	store = toObject(JSON.parse(window.localStorage.getItem("gameStorage")))
 } catch {
 	store = {}
 }
-
-async function getUser (username) {
-	return toObject(store[username])
+async function getUser (name, password) {
+	return send({
+		type: "get",
+		name,
+		password
+	})
 }
-async function checkUser (username) {
-	return Boolean(store[username])
+async function checkUser (name) {
+	return send({
+		type: "check",
+		name
+	})
 }
-async function setUser (username, pwd, saveData) {
-	store[username] = saveData;
-	window.localStorage.setItem("gameStorage", JSON.stringify(store))
+async function setUser (name, password, data) {
+	return send({
+		type: "save",
+		name,
+		password,
+		data
+	})
 }
 export default {
 	getUser,

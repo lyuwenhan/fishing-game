@@ -1,0 +1,63 @@
+{
+  "a": {
+    "hash": "eOo4cAgEd79BUq2hAQrrrphGegimlqR5csj+Fpbbl+6jgsdCG+qX6NsuMqedRIUaMgWx1A0F/ZS+hZI5CnUAtA==",
+    "salt": "SBRUkptutzNTtumZyE2nzw==",
+    "data": {
+      "money": 20,
+      "level": 5,
+      "getLevel": 0,
+      "cnt": 0,
+      "bf": 20,
+      "stime": 1,
+      "slip": 50,
+      "cleaningBall": 0,
+      "cleaningSub": 1,
+      "gan": 1,
+      "aqCnt": 0,
+      "speed": 2,
+      "tryLevel": 0,
+      "roast": 0,
+      "hungry": 20,
+      "aqFishCnt": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "fish": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "simple": false
+    }
+  }
+}

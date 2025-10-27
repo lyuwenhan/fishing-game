@@ -1,6 +1,6 @@
 import variate from "./variate.js";
 import func from "./func.js";
-import storage from "./storage.js"
+import storage from "./storage.js";
 
 function decode (data) {
 	variate.dataSaver = {
@@ -8,9 +8,11 @@ function decode (data) {
 		...data ?? {}
 	}
 }
-
 async function save () {
-	await storage.setUser(variate.username, variate.pwd, variate.dataSaver)
+	const status = await storage.setUser(variate.username, variate.pwd, variate.dataSaver)
+	if (status.type !== "successed") {
+		await func.printa(status.message ?? status.type);
+	}
 }
 async function login () {
 	let username, pwd, pwd2;
@@ -19,22 +21,32 @@ async function login () {
 	func.printnl("用户名: ");
 	username = await func.getname(1);
 	if (!func.checkName(username)) {
-		func.print("用户名不合法");
+		await func.printa("用户名不合法");
 		return false
 	}
 	func.printnl("密码: ");
 	pwd = await func.getline(2);
-	if (await storage.checkUser(username)) {
+	const isUser = await storage.checkUser(username);
+	if (isUser.type !== "successed") {
+		await func.printa(isUser.message ?? isUser.type);
+		return false
+	}
+	if (isUser.isValid) {
 		variate.username = username;
 		variate.pwd = pwd;
 		func.clear();
-		decode(await storage.getUser(username, pwd));
+		const userData = await storage.getUser(username, pwd);
+		if (userData.type !== "successed") {
+			func.printa(userData.message ?? userData.type);
+			return false
+		}
+		decode(userData.data);
 		func.print("登录成功")
 	} else {
 		func.printnl("请确认密码: ");
 		pwd2 = await func.getline(2);
 		if (pwd !== pwd2) {
-			func.print("两次密码不一致");
+			await func.printa("两次密码不一致");
 			return false
 		}
 		variate.pwd = pwd;
