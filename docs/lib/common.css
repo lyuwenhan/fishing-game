@@ -1,0 +1,14 @@
+body{
+	font-family: 'Consolas', Courier, monospace;
+	padding: 0;
+}
+[hidden]{
+	display: none !important;
+}
+img,br,button{
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-webkit-user-drag: none;
+}
