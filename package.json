@@ -73,9 +73,9 @@
 		"email": "81000228+lyuwenhan@users.noreply.github.com"
 	},
 	"bugs": {
-		"url": "https://github.com/lyuwenhan/fishing-source-code-js/issues"
+		"url": "https://github.com/lyuwenhan/fishing-game/issues"
 	},
-	"homepage": "https://github.com/lyuwenhan/fishing-source-code-js#readme",
+	"homepage": "https://github.com/lyuwenhan/fishing-game#readme",
 	"devDependencies": {
 		"electron": "^41.5.0",
 		"electron-builder": "^26.8.1",
