@@ -154,7 +154,7 @@ async function installUpdateOnStartup() {
 
 function createWindow() {
 	const win = new BrowserWindow({
-		title: `${APP_NAME} v${app.getVersion()}`,
+		title: APP_NAME,
 		width: 1200,
 		height: 800,
 		icon: path.join(__dirname, "icons", process.platform === "darwin" ? "icon.icns" : "icon.ico"),
