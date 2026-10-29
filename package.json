@@ -7,8 +7,10 @@
 	"main": "electron/electron-main.js",
 	"scripts": {
 		"bundle": "node scripts/bundle.mjs",
+		"build:pages": "node scripts/ci-build-pages.mjs",
 		"electron": "electron .",
-		"dist": "npm run bundle && electron-builder --publish never"
+		"pack": "electron-builder --publish never",
+		"dist": "npm run bundle && npm run pack"
 	},
 	"build": {
 		"appId": "com.fishing.game",
@@ -32,7 +34,9 @@
 			"icon": "electron/icons/512x512.png",
 			"target": [
 				"AppImage",
-				"deb"
+				"deb",
+				"rpm",
+				"tar.gz"
 			],
 			"category": "Game",
 			"synopsis": "Terminal-style fishing game",
@@ -65,6 +69,9 @@
 			"artifactName": "${productName}-Portable-${version}.${ext}"
 		},
 		"deb": {
+			"packageName": "fishing-game"
+		},
+		"rpm": {
 			"packageName": "fishing-game"
 		}
 	},

@@ -5,7 +5,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<title>Fishing Game</title>
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+		<link rel="stylesheet" href="lib/xterm.css">
 		<script src="lib/xterm.js"></script>
 		<script src="lib/xterm-addon-fit.js"></script>
 		<style>
@@ -140,7 +140,8 @@
 					<path fill="black" d="M 7 7 l 3 0 l 0 1 l -2 0 l 0 2 l -1 0 M 3 7 l 3 0 l 0 3 l -1 0 l 0 -2 l -2 0 M 7 3 l 1 0 l 0 2 l 2 0 l 0 1 l -3 0 M 5 3 l 1 0 l 0 3 l -3 0 l 0 -1 l 2 0" />
 				</svg></div>
 		</div>
-		<script>
+		<script type="module">
+    		import * as fishing from "./main.js";
 			const fontSize = window.innerWidth < 768 ? 12 : 18;
 			const term = new Terminal({
 				fontSize,
@@ -265,7 +266,7 @@
 				setLanguage: () => {}
 			};
 			let disposers = [];
-			import("./main.js").then(async fishing => {
+			try{
 				while (true) {
 					const gameInstance = fishing.createGameInstance(text => term.write(text), loadGame, saveGame, hasSave);
 					langs = gameInstance.languages;
@@ -281,14 +282,13 @@
 					disposers.forEach(disposer => disposer.dispose());
 					disposers.length = 0
 				}
-			}).catch(e => {
+			}catch(e){
 				disposers.forEach(disposer => disposer.dispose());
 				disposers.length = 0;
 				term.write(`\n\n\x1b[m${e.stack}\n`.replace(/\n/g, "\r\n"));
 				console.error(e);
 				console.error(e.stack)
-			});
-
+			};
 		</script>
 	</body>
 

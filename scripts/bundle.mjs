@@ -46,6 +46,3 @@ if (!tResult.code) {
 
 const out = path.join(root, "main.js");
 fs.writeFileSync(out, tResult.code);
-for (const rel of ["docs/main.js", "electron/main.js"]) {
-	fs.copyFileSync(out, path.join(root, rel))
-}

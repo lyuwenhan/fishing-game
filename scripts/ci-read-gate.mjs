@@ -1,23 +1,21 @@
 import fs from "node:fs";
-const out = process.env.GITHUB_OUTPUT;
-if (!out) {
+const outputPath = process.env.GITHUB_OUTPUT;
+if (!outputPath) {
 	console.error("GITHUB_OUTPUT is not set");
 	process.exit(1)
 }
-const path = "status.json";
-if (!fs.existsSync(path)) {
-	fs.appendFileSync(out, "should_release=false\n");
-	console.log("status.json missing; skipping build and release.");
+const statusPath = "status.json";
+if (!fs.existsSync(statusPath)) {
+	fs.appendFileSync(outputPath, "should_release=false\n");
+	console.log("status.json is missing — skipping the release.");
 	process.exit(0)
 }
-let needsUpdate = false;
 try {
-	const j = JSON.parse(fs.readFileSync(path, "utf8"));
-	needsUpdate = j.needsUpdate === true
-} catch (e) {
-	console.error("Invalid status.json:", e.message);
-	fs.appendFileSync(out, "should_release=false\n");
-	process.exit(0)
+	const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
+	const shouldRelease = status.needsUpdate === true;
+	fs.appendFileSync(outputPath, `should_release=${shouldRelease}\n`);
+	console.log(shouldRelease ? "needsUpdate is true — running build and release." : "needsUpdate is false — skipping the release.")
+} catch (error) {
+	fs.appendFileSync(outputPath, "should_release=false\n");
+	console.log(`Invalid status.json — skipping the release: ${error.message}`)
 }
-fs.appendFileSync(out, `should_release=${needsUpdate}\n`);
-console.log(needsUpdate ? "needsUpdate is true — running build, pack, and release." : "needsUpdate is false — skipping build, pack, and release.");

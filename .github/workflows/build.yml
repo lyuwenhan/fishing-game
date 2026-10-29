@@ -1,13 +1,18 @@
-name: Build
+name: Build and Release
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   gate:
@@ -15,139 +20,116 @@ jobs:
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Read status.json
+      - uses: actions/checkout@v4
+      - name: Read release gate
         id: check
         run: node scripts/ci-read-gate.mjs
 
-  build:
+  reset-no-release:
+    runs-on: ubuntu-latest
+    needs: [gate]
+    if: needs.gate.result == 'success' && needs.gate.outputs.should_release != 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reset release status
+        run: node scripts/ci-reset-status.mjs
+      - name: Commit reset when needed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add status.json
+          if git diff --staged --quiet; then
+            echo "status.json is already reset."
+            exit 0
+          fi
+          git commit -m "chore: reset release status"
+          git push
+
+  bundle:
     runs-on: ubuntu-latest
     needs: [gate]
     if: needs.gate.outputs.should_release == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Bundle and minify source-code (entry main.js)
+      - name: Bundle application source
         run: npm run bundle
-
-      - name: Upload main.js for release
+      - name: Upload bundled source
         uses: actions/upload-artifact@v4
         with:
-          name: fishing-main-js
+          name: fishing-bundle
           path: main.js
+          if-no-files-found: error
 
-      - name: Commit and push bundle
-        if: github.event_name != 'pull_request'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add main.js docs/main.js electron/main.js
-          if git diff --staged --quiet; then
-            echo "Bundle unchanged, nothing to commit."
-          else
-            git commit -m "chore: build main.js"
-            git push
-          fi
-
-  icon-ico:
+  icons:
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [gate]
+    if: needs.gate.outputs.should_release == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Sync to latest on branch
-        run: |
-          git fetch origin "${{ github.ref_name }}"
-          git reset --hard "origin/${{ github.ref_name }}"
-
+      - uses: actions/checkout@v4
       - name: Setup ImageMagick
-        uses: mfinelli/setup-imagemagick@v7
+        uses: mfinelli/setup-imagemagick@v8
         with:
           cache: true
           install-libfuse2: true
-
-      - name: Build icon.ico from PNGs
+      - name: Build Windows icon from designed PNGs
+        shell: bash
         run: |
           set -euo pipefail
-          cd electron/icons
-          magick 16x16.png 24x24.png 32x32.png 48x48.png 64x64.png 128x128.png 256x256.png 512x512.png 1024x1024.png icon.ico
-
-      - name: Commit and push icon.ico
-        if: github.event_name != 'pull_request'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add electron/icons/icon.ico
-          if git diff --staged --quiet; then
-            echo "icon.ico unchanged, nothing to commit."
-          else
-            git commit -m "chore: regenerate icon.ico"
-            git push
-          fi
-
-  icon-icns:
-    runs-on: macos-latest
-    needs: [icon-ico]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+          magick electron/icons/16x16.png electron/icons/24x24.png electron/icons/32x32.png electron/icons/48x48.png electron/icons/64x64.png electron/icons/128x128.png electron/icons/256x256.png electron/icons/icon.ico
+      - name: Upload Windows icon
+        uses: actions/upload-artifact@v4
         with:
-          fetch-depth: 0
+          name: prepared-icons
+          path: electron/icons/icon.ico
+          if-no-files-found: error
+          compression-level: 0
 
-      - name: Sync to latest on branch
-        run: |
-          git fetch origin "${{ github.ref_name }}"
-          git reset --hard "origin/${{ github.ref_name }}"
-
-      - name: Build icon.icns from PNGs
+  mac-icon:
+    runs-on: macos-latest
+    needs: [icons]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-icons
+          path: electron/icons
+      - name: Generate macOS icon
+        shell: bash
         run: |
           set -euo pipefail
-          cd electron/icons
-          rm -rf icon.iconset
           mkdir icon.iconset
-          cp 16x16.png icon.iconset/icon_16x16.png
-          cp 32x32.png icon.iconset/icon_16x16@2x.png
-          cp 32x32.png icon.iconset/icon_32x32.png
-          cp 64x64.png icon.iconset/icon_32x32@2x.png
-          cp 128x128.png icon.iconset/icon_128x128.png
-          cp 256x256.png icon.iconset/icon_128x128@2x.png
-          cp 256x256.png icon.iconset/icon_256x256.png
-          cp 512x512.png icon.iconset/icon_256x256@2x.png
-          cp 512x512.png icon.iconset/icon_512x512.png
-          cp 1024x1024.png icon.iconset/icon_512x512@2x.png
-          iconutil -c icns icon.iconset -o icon.icns
+          cp electron/icons/16x16.png icon.iconset/icon_16x16.png
+          cp electron/icons/32x32.png icon.iconset/icon_16x16@2x.png
+          cp electron/icons/32x32.png icon.iconset/icon_32x32.png
+          cp electron/icons/64x64.png icon.iconset/icon_32x32@2x.png
+          cp electron/icons/128x128.png icon.iconset/icon_128x128.png
+          cp electron/icons/256x256.png icon.iconset/icon_128x128@2x.png
+          cp electron/icons/256x256.png icon.iconset/icon_256x256.png
+          cp electron/icons/512x512.png icon.iconset/icon_256x256@2x.png
+          cp electron/icons/512x512.png icon.iconset/icon_512x512.png
+          cp electron/icons/1024x1024.png icon.iconset/icon_512x512@2x.png
+          iconutil -c icns icon.iconset -o electron/icons/icon.icns
           rm -rf icon.iconset
-
-      - name: Commit and push icon.icns
-        if: github.event_name != 'pull_request'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add electron/icons/icon.icns
-          if git diff --staged --quiet; then
-            echo "icon.icns unchanged, nothing to commit."
-          else
-            git commit -m "chore: regenerate icon.icns"
-            git push
-          fi
+      - name: Upload complete icons
+        uses: actions/upload-artifact@v4
+        with:
+          name: complete-icons
+          path: |
+            electron/icons/icon.ico
+            electron/icons/icon.icns
+          if-no-files-found: error
+          compression-level: 0
 
   electron-pack:
-    needs: [icon-icns]
+    needs: [bundle, mac-icon]
     strategy:
       fail-fast: false
       matrix:
@@ -156,123 +138,190 @@ jobs:
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Download bundled source
+        uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
-
-      - name: Sync to latest on branch
-        run: |
-          git fetch origin "${{ github.ref_name }}"
-          git reset --hard "origin/${{ github.ref_name }}"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+          name: fishing-bundle
+          path: electron
+      - name: Download icons
+        uses: actions/download-artifact@v4
+        with:
+          name: complete-icons
+          path: electron/icons
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-
       - name: Install Linux build dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y binutils fakeroot
-
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils fakeroot rpm
       - name: Install dependencies
         run: npm ci
-
-      - name: Bundle app and pack with electron-builder
-        run: npm run dist
-
+      - name: Package Electron application
+        run: npm run pack
       - name: Upload Windows NSIS installer
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: fishing-electron-${{ matrix.os }}-nsis
+          name: fishing-windows-nsis
           path: dist-electron/*Setup*.exe
-
+          if-no-files-found: error
+          compression-level: 0
       - name: Upload Windows portable
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: fishing-electron-${{ matrix.os }}-portable
+          name: fishing-windows-portable
           path: dist-electron/*Portable*.exe
-
+          if-no-files-found: error
+          compression-level: 0
       - name: Upload macOS DMG
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: fishing-electron-${{ matrix.os }}-dmg
+          name: fishing-macos-dmg
           path: dist-electron/*.dmg
-
+          if-no-files-found: error
+          compression-level: 0
       - name: Upload macOS ZIP
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: fishing-electron-${{ matrix.os }}-zip
+          name: fishing-macos-zip
           path: dist-electron/*.zip
-
+          if-no-files-found: error
+          compression-level: 0
       - name: Upload Linux AppImage
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: fishing-electron-${{ matrix.os }}-appimage
+          name: fishing-linux-appimage
           path: dist-electron/*.AppImage
-
+          if-no-files-found: error
+          compression-level: 0
       - name: Upload Linux deb
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: fishing-electron-${{ matrix.os }}-deb
+          name: fishing-linux-deb
           path: dist-electron/*.deb
+          if-no-files-found: error
+          compression-level: 0
+      - name: Upload Linux rpm
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishing-linux-rpm
+          path: dist-electron/*.rpm
+          if-no-files-found: error
+          compression-level: 0
+      - name: Upload Linux tar.gz
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishing-linux-tar-gz
+          path: dist-electron/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+
+  pages:
+    runs-on: ubuntu-latest
+    needs: [gate, bundle]
+    if: needs.gate.outputs.should_release == 'true'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Download bundled source
+        uses: actions/download-artifact@v4
+        with:
+          name: fishing-bundle
+          path: .
+      - name: Build web page
+        run: npm run build:pages
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+      - name: Upload page for release
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishing-page
+          path: docs/index.html
+          if-no-files-found: error
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
 
   release:
     runs-on: ubuntu-latest
-    needs: [gate, build, icon-ico, icon-icns, electron-pack]
-    if: needs.gate.outputs.should_release == 'true' && needs.build.result == 'success' && needs.icon-ico.result == 'success' && needs.icon-icns.result == 'success' && needs.electron-pack.result == 'success'
+    needs: [gate, bundle, icons, mac-icon, electron-pack, pages]
+    if: >-
+      needs.gate.outputs.should_release == 'true' &&
+      needs.bundle.result == 'success' &&
+      needs.icons.result == 'success' &&
+      needs.mac-icon.result == 'success' &&
+      needs.electron-pack.result == 'success' &&
+      needs.pages.result == 'success'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Package version
-        id: ver
+      - uses: actions/checkout@v4
+      - name: Read package version
+        id: version
         run: |
-          V=$(node -p "require('./package.json').version")
-          echo "version=$V" >> "$GITHUB_OUTPUT"
-
-      - name: Download all artifacts
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: fishing-*
           path: artifacts
-          merge-multiple: false
-
-      - name: Stage release files with fishing-<system>-<type> names
+      - name: Stage release files
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
-          mkdir -p release-out
-          ROOT="artifacts"
-          cp "$ROOT/fishing-main-js/main.js" release-out/fishing-main.js
-          WIN_NSIS=$(find "$ROOT/fishing-electron-windows-latest-nsis" -maxdepth 1 -type f -name '*.exe' | head -1)
-          WIN_PORT=$(find "$ROOT/fishing-electron-windows-latest-portable" -maxdepth 1 -type f -name '*.exe' | head -1)
-          MAC_DMG=$(find "$ROOT/fishing-electron-macos-latest-dmg" -maxdepth 1 -type f -name '*.dmg' | head -1)
-          MAC_ZIP=$(find "$ROOT/fishing-electron-macos-latest-zip" -maxdepth 1 -type f -name '*.zip' | head -1)
-          LIN_AI=$(find "$ROOT/fishing-electron-ubuntu-latest-appimage" -maxdepth 1 -type f \( -name '*.AppImage' -o -name '*.appimage' \) | head -1)
-          LIN_DEB=$(find "$ROOT/fishing-electron-ubuntu-latest-deb" -maxdepth 1 -type f -name '*.deb' | head -1)
-          for pair in "$WIN_NSIS:fishing-windows-install.exe" "$WIN_PORT:fishing-windows-portable.exe" "$MAC_DMG:fishing-macos-install.dmg" "$MAC_ZIP:fishing-macos-portable.zip" "$LIN_AI:fishing-linux-portable.AppImage" "$LIN_DEB:fishing-linux-install.deb"; do
-            SRC="${pair%%:*}"
-            DST="${pair##*:}"
-            if [ -z "$SRC" ] || [ ! -f "$SRC" ]; then
-              echo "Missing artifact for $DST (src empty or not a file)" >&2
+          mkdir release-out
+          copy_first() {
+            local directory="$1"
+            local pattern="$2"
+            local destination="$3"
+            local source
+            source=$(find "$directory" -maxdepth 1 -type f -name "$pattern" -print -quit)
+            if [ -z "$source" ]; then
+              echo "Missing artifact: $directory/$pattern" >&2
               exit 1
             fi
-            cp "$SRC" "release-out/$DST"
-          done
+            cp "$source" "release-out/$destination"
+          }
+          copy_first artifacts/fishing-bundle 'main.js' "fishing-main-v${VERSION}.js"
+          copy_first artifacts/fishing-windows-nsis '*.exe' "fishing-windows-install-v${VERSION}.exe"
+          copy_first artifacts/fishing-windows-portable '*.exe' "fishing-windows-portable-v${VERSION}.exe"
+          copy_first artifacts/fishing-macos-dmg '*.dmg' "fishing-macos-install-v${VERSION}.dmg"
+          copy_first artifacts/fishing-macos-zip '*.zip' "fishing-macos-portable-v${VERSION}.zip"
+          copy_first artifacts/fishing-linux-appimage '*.AppImage' "fishing-linux-portable-v${VERSION}.AppImage"
+          copy_first artifacts/fishing-linux-deb '*.deb' "fishing-linux-install-v${VERSION}.deb"
+          copy_first artifacts/fishing-linux-rpm '*.rpm' "fishing-linux-install-v${VERSION}.rpm"
+          copy_first artifacts/fishing-linux-tar-gz '*.tar.gz' "fishing-linux-portable-v${VERSION}.tar.gz"
+          copy_first artifacts/fishing-page 'index.html' "fishing-web-v${VERSION}.html"
           ls -la release-out
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ steps.ver.outputs.version }}
-          name: Fishing v${{ steps.ver.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Fishing v${{ steps.version.outputs.version }}
           generate_release_notes: true
           overwrite_files: true
           files: release-out/*
@@ -284,27 +333,23 @@ jobs:
     needs: [release]
     if: needs.release.result == 'success'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Sync to latest on branch
+      - name: Sync latest main
         run: |
-          git fetch origin "${{ github.ref_name }}"
-          git reset --hard "origin/${{ github.ref_name }}"
-
-      - name: Reset status.json
+          git fetch origin main
+          git reset --hard origin/main
+      - name: Reset release status
         run: node scripts/ci-reset-status.mjs
-
-      - name: Commit and push status.json
+      - name: Commit reset
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add status.json
           if git diff --staged --quiet; then
-            echo "status.json unchanged, nothing to commit."
+            echo "status.json is already reset."
             exit 0
           fi
-          git commit -m "chore: reset needsUpdate in status.json"
+          git commit -m "chore: reset release status"
           git push

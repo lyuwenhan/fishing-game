@@ -141,6 +141,7 @@
 				</svg></div>
 		</div>
 		<script>
+			"import fishing";
 			const fontSize = window.innerWidth < 768 ? 12 : 18;
 			const term = new Terminal({
 				fontSize,
@@ -265,7 +266,7 @@
 				setLanguage: () => {}
 			};
 			let disposers = [];
-			import("./main.js").then(async fishing => {
+			(async () => {
 				while (true) {
 					const gameInstance = fishing.createGameInstance(text => term.write(text), loadGame, saveGame, hasSave);
 					langs = gameInstance.languages;
@@ -281,7 +282,7 @@
 					disposers.forEach(disposer => disposer.dispose());
 					disposers.length = 0
 				}
-			}).catch(e => {
+			})().catch(e => {
 				disposers.forEach(disposer => disposer.dispose());
 				disposers.length = 0;
 				term.write(`\n\n\x1b[m${e.stack}\n`.replace(/\n/g, "\r\n"));
