@@ -142,6 +142,7 @@
 		</div>
 		<script>
 			"import fishing";
+			const requestedLanguage = new URLSearchParams(window.location.search).get("lang");
 			const fontSize = window.innerWidth < 768 ? 12 : 18;
 			const term = new Terminal({
 				fontSize,
@@ -268,7 +269,7 @@
 			let disposers = [];
 			(async () => {
 				while (true) {
-					const gameInstance = fishing.createGameInstance(text => term.write(text), loadGame, saveGame, hasSave);
+					const gameInstance = fishing.createGameInstance(text => term.write(text), loadGame, saveGame, hasSave, requestedLanguage);
 					langs = gameInstance.languages;
 					gameInstance.setConsoleSize({
 						cols: term.cols,
