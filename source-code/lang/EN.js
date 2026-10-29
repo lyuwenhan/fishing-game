@@ -2,6 +2,7 @@ import * as adventureStory from "./adventureStory/adventureStoryEN.js";
 const exit = "exit";
 export function getCopy() {
 	return {
+		name: "en-us / English",
 		exit,
 		io: {
 			outputSpeed: 2,
