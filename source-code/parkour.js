@@ -62,7 +62,7 @@ export default function createParkour(functions, lang, data, io) {
 				} else {
 					const mapIJ = cellAt(i, j);
 					if (mapIJ === ".") {
-						await io.write("\x1b[34;1m \x1b[m")
+						await io.write("\x1b[34;1m.\x1b[m")
 					} else if (mapIJ === "*") {
 						await io.write("\x1b[31;1m*\x1b[m")
 					} else if (mapIJ === "Z") {
