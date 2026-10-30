@@ -1,4 +1,4 @@
-export default function createData(functions) {
+export default function createData(functions, enablePassword) {
 	const constant = functions.deepFreeze({
 		maxCatchSpeedLevel: 25,
 		minCatchSpeed: [50, 40, 40, 40, 30, 30, 30, 30, 20, 20, 10, 9, 7, 5, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1],
@@ -94,6 +94,7 @@ export default function createData(functions) {
 	}
 	return Object.freeze({
 		constant,
+		enablePassword,
 		gameState: createGameState(),
 		createDataSaver,
 		createGameState

@@ -1,6 +1,6 @@
 export default function createCheckpoint(functions, lang, data, io, normalizeDataSaver) {
 	async function loadGame() {
-		const loadState = await data.gameState.requiredFunctions.loadGame(data.gameState.username, data.gameState.password);
+		const loadState = await (data.enablePassword ? data.gameState.requiredFunctions.loadGame(data.gameState.username, data.gameState.password) : data.gameState.requiredFunctions.loadGame(data.gameState.username));
 		if (loadState?.code === 1) {
 			data.gameState.dataSaver = {
 				...data.createDataSaver(),
@@ -12,7 +12,7 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 	}
 	async function saveGame() {
 		normalizeDataSaver();
-		return data.gameState.requiredFunctions.saveGame(data.gameState.username, data.gameState.password, data.gameState.dataSaver)
+		return data.enablePassword ? data.gameState.requiredFunctions.saveGame(data.gameState.username, data.gameState.password, data.gameState.dataSaver) : data.gameState.requiredFunctions.saveGame(data.gameState.username, data.gameState.dataSaver)
 	}
 	async function login() {
 		while (true) {
@@ -39,18 +39,20 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 				continue
 			}
 			const isNew = userState.code === 2;
-			await io.printnl(functions.capitalize(lang.current.checkpoint.password) + ": ");
-			if (data.gameState.settings.forceBlancPassword) {
-				await io.write("\n")
-			} else {
-				password = await io.getline(true);
-				if (isNew) {
-					await io.printnl(functions.capitalize(lang.current.checkpoint.confirmPassword) + ": ");
-					let newPassword = await io.getline(true);
-					if (newPassword !== password) {
-						await io.print(lang.current.checkpoint.passwordNotMatch);
-						await functions.sleep(1);
-						continue
+			if (data.enablePassword) {
+				await io.printnl(functions.capitalize(lang.current.checkpoint.password) + ": ");
+				if (data.gameState.settings.forceBlancPassword) {
+					await io.write("\n")
+				} else {
+					password = await io.getline(true);
+					if (isNew) {
+						await io.printnl(functions.capitalize(lang.current.checkpoint.confirmPassword) + ": ");
+						let newPassword = await io.getline(true);
+						if (newPassword !== password) {
+							await io.print(lang.current.checkpoint.passwordNotMatch);
+							await functions.sleep(1);
+							continue
+						}
 					}
 				}
 			}
@@ -70,7 +72,7 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 				await functions.sleep(1);
 				continue
 			}
-			if (saveState.code === 2) {
+			if (data.enablePassword && saveState.code === 2) {
 				await io.print(lang.current.checkpoint.passwordError);
 				await functions.sleep(1);
 				continue
@@ -89,7 +91,7 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 		const saveState = await saveGame();
 		if (!saveState?.code) {
 			await io.printa(lang.current.checkpoint.apiError)
-		} else if (saveState.code === 2) {
+		} else if (data.enablePassword && saveState.code === 2) {
 			await io.printa(lang.current.checkpoint.passwordError)
 		}
 	}

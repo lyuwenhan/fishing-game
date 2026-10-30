@@ -10,10 +10,13 @@ import createParkour from "./parkour.js";
 import createLottery from "./lottery.js";
 import createAdventure from "./adventure.js";
 import createSettings from "./settings.js";
-export function createGameInstance(write, loadGame, saveGame, hasSave, languageCode) {
+export function createGameInstance(write, loadGame, saveGame, hasSave, {
+	languageCode,
+	enablePassword
+}) {
 	const functions = createFunctions();
 	const lang = createLang(functions, languageCode);
-	const data = createData(functions);
+	const data = createData(functions, enablePassword ?? true);
 	const io = createIo(functions, lang, data);
 	const normalizeDataSaver = createNormalizeDataSaver(functions, data);
 	const checkpoint = createCheckpoint(functions, lang, data, io, normalizeDataSaver);

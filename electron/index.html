@@ -232,7 +232,7 @@
 				window.localStorage.setItem("fishing-local-data", JSON.stringify(data))
 			}
 
-			function loadGame(username, password) {
+			function loadGame(username) {
 				const data = getData();
 				setData(data);
 				if (data[username]) {
@@ -247,7 +247,7 @@
 				}
 			}
 
-			function saveGame(username, password, gameData) {
+			function saveGame(username, gameData) {
 				const data = getData();
 				data[username] = gameData;
 				setData(data);
@@ -269,7 +269,7 @@
 			let disposers = [];
 			try{
 				while (true) {
-					const gameInstance = fishing.createGameInstance(text => term.write(text), loadGame, saveGame, hasSave, requestedLanguage);
+					const gameInstance = fishing.createGameInstance(text => term.write(text), loadGame, saveGame, hasSave, { languageCode: requestedLanguage, enablePassword: false });
 					langs = gameInstance.languages;
 					window.electronLanguage?.setLanguages(Object.entries(langs.langs).map(([code, language]) => ({
 						code,
