@@ -21,10 +21,3 @@ successful release it resets `status.json` so a later push does not publish the
 same version again.
 
 Linux releases include AppImage, deb, rpm, and tar.gz packages.
-
-Installed Windows and macOS builds, plus the Linux AppImage, check for updates
-when the application starts. When an update is available, the application
-downloads and installs it silently before opening the game. Windows portable,
-deb, rpm, and tar.gz builds do not self-update. Update files are published in
-the dedicated [Fishing Game Auto Updater](https://github.com/lyuwenhan/fishing-game-auto-updater)
-repository.

@@ -6,13 +6,9 @@ import {
 } from "electron";
 import fs from "node:fs/promises";
 import path from "node:path";
-import electronUpdater from "electron-updater";
 import {
 	fileURLToPath
 } from "node:url";
-const {
-	autoUpdater
-} = electronUpdater;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const APP_NAME = "Fishing Game";
@@ -83,75 +79,6 @@ function isDevToolsShortcut(input) {
 	return key === "f12" || input.control && input.shift && key === "i" || input.meta && input.alt && key === "i"
 }
 
-function autoUpdatesSupported() {
-	if (!app.isPackaged) {
-		return false
-	}
-	if (process.platform === "win32") {
-		return !process.env.PORTABLE_EXECUTABLE_DIR
-	}
-	if (process.platform === "linux") {
-		return Boolean(process.env.APPIMAGE)
-	}
-	return process.platform === "darwin"
-}
-
-function checkForAvailableUpdate() {
-	return new Promise((resolve, reject) => {
-		let settled = false;
-		const timeout = setTimeout(() => finish(false), 15e3);
-		const onAvailable = () => finish(true);
-		const onNotAvailable = () => finish(false);
-		const onError = error => finish(false, error);
-
-		function finish(available, error) {
-			if (settled) {
-				return
-			}
-			settled = true;
-			clearTimeout(timeout);
-			autoUpdater.off("update-available", onAvailable);
-			autoUpdater.off("update-not-available", onNotAvailable);
-			autoUpdater.off("error", onError);
-			if (error) {
-				reject(error)
-			} else {
-				resolve(available)
-			}
-		}
-		autoUpdater.on("update-available", onAvailable);
-		autoUpdater.on("update-not-available", onNotAvailable);
-		autoUpdater.on("error", onError);
-		autoUpdater.checkForUpdates().catch(onError)
-	})
-}
-async function installUpdateOnStartup() {
-	if (!autoUpdatesSupported()) {
-		return false
-	}
-	autoUpdater.autoDownload = false;
-	autoUpdater.autoInstallOnAppQuit = false;
-	autoUpdater.on("error", error => {
-		console.error("Automatic updater error:", error)
-	});
-	try {
-		if (!await checkForAvailableUpdate()) {
-			return false
-		}
-		try {
-			await autoUpdater.downloadUpdate();
-			autoUpdater.quitAndInstall(true, true)
-		} catch (error) {
-			console.error("Automatic update download failed:", error);
-			app.quit()
-		}
-		return true
-	} catch (error) {
-		console.error("Automatic update check failed:", error);
-		return false
-	}
-}
-
 function createWindow() {
 	const win = new BrowserWindow({
 		title: APP_NAME,
@@ -188,9 +115,6 @@ function createWindow() {
 	loadGamePage(win, savedLanguage)
 }
 app.whenReady().then(async () => {
-	if (await installUpdateOnStartup()) {
-		return
-	}
 	savedLanguage = await readSavedLanguage();
 	if (!app.isPackaged) {
 		developmentMenu = Menu.getApplicationMenu()
