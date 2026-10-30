@@ -9,6 +9,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -123,8 +124,55 @@ jobs:
           if-no-files-found: error
           compression-level: 0
 
+  pages:
+    runs-on: ubuntu-latest
+    needs: [bundle]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Download bundled source
+        uses: actions/download-artifact@v4
+        with:
+          name: fishing-bundle
+          path: .
+      - name: Build web page
+        run: npm run build:pages
+      - name: Upload built page
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishing-page
+          path: docs/index.html
+          if-no-files-found: error
+
+  deploy-pages:
+    runs-on: ubuntu-latest
+    needs: [pages]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download built page
+        uses: actions/download-artifact@v4
+        with:
+          name: fishing-page
+          path: page
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: page
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
   electron-pack:
-    needs: [bundle, icons, mac-icon]
+    needs: [pages, icons, mac-icon]
     strategy:
       fail-fast: false
       matrix:
@@ -134,10 +182,10 @@ jobs:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
       - uses: actions/checkout@v4
-      - name: Download bundled source
+      - name: Download built page
         uses: actions/download-artifact@v4
         with:
-          name: fishing-bundle
+          name: fishing-page
           path: electron
       - name: Download Windows icon
         uses: actions/download-artifact@v4
@@ -227,46 +275,9 @@ jobs:
           if-no-files-found: error
           compression-level: 0
 
-  pages:
-    runs-on: ubuntu-latest
-    needs: [bundle]
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Download bundled source
-        uses: actions/download-artifact@v4
-        with:
-          name: fishing-bundle
-          path: .
-      - name: Build web page
-        run: npm run build:pages
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: docs
-      - name: Upload page for release
-        uses: actions/upload-artifact@v4
-        with:
-          name: fishing-page
-          path: docs/index.html
-          if-no-files-found: error
-      - name: Deploy GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
-
   release:
     runs-on: ubuntu-latest
-    needs: [electron-pack, pages]
+    needs: [electron-pack, deploy-pages]
     steps:
       - uses: actions/checkout@v4
       - name: Read package version
