@@ -56,31 +56,36 @@ export default function createParkour(functions, lang, data, io) {
 			b = 21
 		}
 		for (let i = b; i < b + 10; i++) {
+			let line = "";
 			for (let j = a; j < a + 60; j++) {
+				const mapIJ = cellAt(i, j);
 				if (i === y - 1 && j === x) {
-					await io.write("O")
-				} else {
-					const mapIJ = cellAt(i, j);
-					if (mapIJ === ".") {
-						await io.write("\x1b[34;1m.\x1b[m")
-					} else if (mapIJ === "*") {
-						await io.write("\x1b[31;1m*\x1b[m")
-					} else if (mapIJ === "Z") {
-						await io.write("\x1b[32;1mZ\x1b[m")
-					} else if (mapIJ === "^") {
-						await io.write("\x1b[33;1m^\x1b[m")
-					} else if (mapIJ === ">") {
-						await io.write("\x1b[33;1m>\x1b[m")
-					} else if (mapIJ === "<") {
-						await io.write("\x1b[33;1m<\x1b[m")
-					} else if (isFinishCell(j, i + 1)) {
-						await io.write("\x1b[33;1m" + mapIJ + "\x1b[m")
+					if (mapIJ == ".") {
+						line += "\x1b[44mO\x1b[m"
 					} else {
-						await io.write(mapIJ)
+						line += "O"
+					}
+				} else {
+					if (mapIJ === ".") {
+						line += "\x1b[44m \x1b[m"
+					} else if (mapIJ === "*") {
+						line += "\x1b[31;1m*\x1b[m"
+					} else if (mapIJ === "Z") {
+						line += "\x1b[32;1mZ\x1b[m"
+					} else if (mapIJ === "^") {
+						line += "\x1b[33;1m^\x1b[m"
+					} else if (mapIJ === ">") {
+						line += "\x1b[33;1m>\x1b[m"
+					} else if (mapIJ === "<") {
+						line += "\x1b[33;1m<\x1b[m"
+					} else if (isFinishCell(j, i + 1)) {
+						line += "\x1b[33;1m" + mapIJ + "\x1b[m"
+					} else {
+						line += mapIJ
 					}
 				}
 			}
-			await io.write("\n")
+			await io.write(line + "\n")
 		}
 	}
 
@@ -106,6 +111,7 @@ export default function createParkour(functions, lang, data, io) {
 		if (data.gameState.dataSaver.challengeLevel !== 0) {
 			return
 		}
+		await io.write("\x1b[?25l");
 		x = born[level][0];
 		y = born[level][1];
 		await io.clear();
@@ -130,6 +136,7 @@ export default function createParkour(functions, lang, data, io) {
 				let shouldRespawn = false;
 				for (const c of io.getch2s()) {
 					if (c === "") {
+						await io.write("\x1b[?25h");
 						return
 					}
 					if (c === "w" || c === " ") {
@@ -145,13 +152,16 @@ export default function createParkour(functions, lang, data, io) {
 					await io.printa(lang.current.parkour.challengeCompleteReward);
 					data.gameState.dataSaver.money += 500;
 					data.gameState.dataSaver.challengeLevel = 1;
+					await io.write("\x1b[?25h");
 					return
 				}
 				if (isLavaCell()) {
+					await io.write("\x1b[?25h");
 					await io.print(lang.current.parkour.deathMessage);
 					if (!await io.printYn(lang.current.parkour.respawnConfirm)) {
 						return
 					}
+					await io.write("\x1b[?25l");
 					x = born[level][0];
 					y = born[level][1];
 					continue
@@ -251,6 +261,7 @@ export default function createParkour(functions, lang, data, io) {
 				let shouldRespawn = false;
 				for (const c of io.getch2s()) {
 					if (c === "") {
+						await io.write("\x1b[?25h");
 						return
 					}
 					if (c === "r") {
@@ -270,10 +281,12 @@ export default function createParkour(functions, lang, data, io) {
 					}
 				}
 				if (isLavaCell()) {
+					await io.write("\x1b[?25h");
 					await io.print(lang.current.parkour.deathMessage);
 					if (!await io.printYn(lang.current.parkour.respawnConfirm)) {
 						return
 					}
+					await io.write("\x1b[?25l");
 					x = born[level][0];
 					y = born[level][1];
 					continue
