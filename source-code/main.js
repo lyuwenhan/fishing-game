@@ -27,12 +27,12 @@ export function createGameInstance(write, loadGame, saveGame, hasSave, {
 	const adventure = createAdventure(functions, lang, data, io);
 	const settings = createSettings(functions, lang, data, io);
 	data.gameState.setRequiredFunctions(write, loadGame, saveGame, hasSave);
-	let launchCount = 0;
+	let launched = false;
 	async function launch() {
-		launchCount++;
-		if (launchCount > 1) {
+		if (launched) {
 			return
 		}
+		launched = true;
 		await io.clear();
 		if (!data.gameState.settings.skipStory) {
 			for (let text of lang.current.main.story) {
