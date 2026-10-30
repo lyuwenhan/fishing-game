@@ -87,20 +87,17 @@ jobs:
       - name: Upload Windows icon
         uses: actions/upload-artifact@v4
         with:
-          name: prepared-icons
+          name: windows-icon
           path: electron/icons/icon.ico
           if-no-files-found: error
           compression-level: 0
 
   mac-icon:
     runs-on: macos-latest
-    needs: [icons]
+    needs: [gate]
+    if: needs.gate.outputs.should_release == 'true'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: prepared-icons
-          path: electron/icons
       - name: Generate macOS icon
         shell: bash
         run: |
@@ -118,18 +115,16 @@ jobs:
           cp electron/icons/1024x1024.png icon.iconset/icon_512x512@2x.png
           iconutil -c icns icon.iconset -o electron/icons/icon.icns
           rm -rf icon.iconset
-      - name: Upload complete icons
+      - name: Upload macOS icon
         uses: actions/upload-artifact@v4
         with:
-          name: complete-icons
-          path: |
-            electron/icons/icon.ico
-            electron/icons/icon.icns
+          name: macos-icon
+          path: electron/icons/icon.icns
           if-no-files-found: error
           compression-level: 0
 
   electron-pack:
-    needs: [bundle, mac-icon]
+    needs: [bundle, icons, mac-icon]
     strategy:
       fail-fast: false
       matrix:
@@ -144,10 +139,15 @@ jobs:
         with:
           name: fishing-bundle
           path: electron
-      - name: Download icons
+      - name: Download Windows icon
         uses: actions/download-artifact@v4
         with:
-          name: complete-icons
+          name: windows-icon
+          path: electron/icons
+      - name: Download macOS icon
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-icon
           path: electron/icons
       - uses: actions/setup-node@v4
         with:
