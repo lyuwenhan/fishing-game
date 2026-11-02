@@ -7,6 +7,7 @@
 	"main": "electron/electron-main.js",
 	"scripts": {
 		"bundle": "node scripts/bundle.mjs",
+		"build:cli": "node scripts/ci-build-cli.mjs",
 		"build:pages": "node scripts/ci-build-pages.mjs",
 		"electron": "electron .",
 		"pack": "electron-builder --publish never",

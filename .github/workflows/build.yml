@@ -69,6 +69,31 @@ jobs:
           path: main.js
           if-no-files-found: error
 
+  cli:
+    runs-on: ubuntu-latest
+    needs: [bundle]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Download bundled source
+        uses: actions/download-artifact@v4
+        with:
+          name: fishing-bundle
+          path: .
+      - name: Build CLI
+        run: npm run build:cli
+      - name: Upload CLI
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishing-cli
+          path: fishing-cli.mjs
+          if-no-files-found: error
+
   icons:
     runs-on: ubuntu-latest
     needs: [gate]
@@ -277,7 +302,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [electron-pack, deploy-pages]
+    needs: [cli, electron-pack, deploy-pages]
     steps:
       - uses: actions/checkout@v4
       - name: Read package version
@@ -310,6 +335,7 @@ jobs:
             cp "$source" "release-out/$destination"
           }
           copy_first artifacts/fishing-bundle 'main.js' "fishing-main-v${VERSION}.js"
+          copy_first artifacts/fishing-cli 'fishing-cli.mjs' "fishing-cli-v${VERSION}.mjs"
           copy_first artifacts/fishing-windows-nsis '*.exe' "fishing-windows-install-v${VERSION}.exe"
           copy_first artifacts/fishing-windows-portable '*.exe' "fishing-windows-portable-v${VERSION}.exe"
           copy_first artifacts/fishing-macos-dmg '*.dmg' "fishing-macos-install-v${VERSION}.dmg"
