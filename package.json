@@ -12,7 +12,8 @@
 		"prepare:pwa": "node scripts/prepare-pwa.mjs",
 		"electron": "electron .",
 		"pack": "electron-builder --publish never",
-		"dist": "npm run bundle && npm run pack"
+		"dist": "npm run bundle && npm run pack",
+		"cli": "node cli/main.mjs"
 	},
 	"build": {
 		"appId": "com.fishing.game",
