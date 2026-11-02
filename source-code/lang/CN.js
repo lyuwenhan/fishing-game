@@ -109,7 +109,7 @@ export function getCopy() {
 			enterCompactMode: "按 e 键进入简洁模式",
 			exitCompactMode: "按 e 键退出简洁模式",
 			makeFishingRod: "制作鱼竿",
-			currentFishingRod: "当前鱼竿",
+			currentFishingRod: "当前鱼竿: ",
 			fishingRod: "的鱼竿",
 			currentAmount: "当前数量",
 			fishpond: "鱼池",

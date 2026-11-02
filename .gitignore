@@ -1,3 +1,4 @@
 node_modules/
+cli/data/
 electron/icons/icon.iconset/
 dist-electron/

@@ -108,7 +108,7 @@ export function getCopy() {
 			enterCompactMode: "Press E to enter compact mode",
 			exitCompactMode: "Press E to exit compact mode",
 			makeFishingRod: "Make fishing rod",
-			currentFishingRod: "Current fishing rod",
+			currentFishingRod: "Current fishing rod: ",
 			fishingRod: "Rod",
 			currentAmount: "Current amount",
 			fishpond: "Fishpond",
