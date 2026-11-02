@@ -61,7 +61,6 @@ export default function createData(functions, enablePassword) {
 				cols: 100
 			},
 			settings: {
-				developerMode: false,
 				skipStory: false,
 				forceUsername: "",
 				forceBlancPassword: false,
