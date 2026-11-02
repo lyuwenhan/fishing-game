@@ -1,6 +1,6 @@
 {
 	"name": "fishing-game",
-	"version": "1.0.8",
+	"version": "1.0.9",
 	"description": "Terminal-style fishing game (ESM library + Electron shell)",
 	"private": true,
 	"type": "module",
@@ -87,7 +87,7 @@
 	"homepage": "https://github.com/lyuwenhan/fishing-game#readme",
 	"devDependencies": {
 		"electron": "^45.1.0",
-		"electron-builder": "^26.8.1",
+		"electron-builder": "^26.18.1",
 		"esbuild": "^0.25.0",
 		"terser": "^5.46.0"
 	}
