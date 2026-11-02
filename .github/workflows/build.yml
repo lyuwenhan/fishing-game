@@ -181,6 +181,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
       - name: Download built page
         uses: actions/download-artifact@v4
         with:
@@ -188,6 +189,8 @@ jobs:
           path: page
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
+      - name: Prepare Pages PWA
+        run: node scripts/prepare-pwa.mjs
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
