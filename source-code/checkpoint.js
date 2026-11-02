@@ -19,6 +19,8 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 			let username = "";
 			let password = "";
 			await io.clear();
+			await io.print(lang.current.title);
+			await io.print();
 			await io.print(functions.capitalize(lang.current.checkpoint.login));
 			await io.printnl(functions.capitalize(lang.current.checkpoint.username) + ": ");
 			if (data.gameState.settings.forceUsername) {

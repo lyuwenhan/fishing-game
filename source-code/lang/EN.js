@@ -3,6 +3,7 @@ const exit = "exit";
 export function getCopy() {
 	return {
 		name: "en-us / English",
+		title: "Fishing Game",
 		exit,
 		io: {
 			outputSpeed: 2,

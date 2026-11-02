@@ -34,14 +34,14 @@ export function createGameInstance(write, loadGame, saveGame, hasSave, {
 		}
 		launched = true;
 		await io.clear();
-		if (!data.gameState.settings.skipStory) {
-			for (let text of lang.current.main.story) {
-				await io.printa(text)
-			}
-		}
 		if (await checkpoint.login()) {
 			if (!data.gameState.settings.forceUsername || !data.gameState.settings.forceBlancPassword || !data.gameState.settings.forceInstantOutput) {
 				await functions.sleep(.5)
+			}
+			if (!data.gameState.settings.skipStory) {
+				for (let text of lang.current.main.story) {
+					await io.printa(text)
+				}
 			}
 			await settings.choose()
 		}

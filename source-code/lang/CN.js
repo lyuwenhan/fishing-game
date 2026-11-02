@@ -3,6 +3,7 @@ const exit = "退出";
 export function getCopy() {
 	return {
 		name: "zh-cn / 简体中文",
+		title: "钓鱼游戏",
 		exit,
 		io: {
 			outputSpeed: 1,
