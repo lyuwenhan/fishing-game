@@ -94,7 +94,6 @@ async function main() {
 		languageCode,
 		enablePassword: false
 	});
-	game.settings.developerMode = true;
 	updateConsoleSize();
 	process.stdout.on("resize", updateConsoleSize);
 	process.stdin.setRawMode(true);
