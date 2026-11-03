@@ -1005,7 +1005,7 @@ export default function createFishing(functions, lang, data, io) {
 				} else if (input === "4") {
 					for (let i = 0; i <= 6; i++) {
 						for (let j = 0; j < fishInPond[i].length; j++) {
-							data.gameState.dataSaver.money += Math.round(getRandomIncome() * getFreshnessMultiplier(fishInPond[i][j]))
+							data.gameState.dataSaver.money += Math.round(getRandomIncome(getFreshnessMultiplier(fishInPond[i][j])))
 						}
 						while (fishInPond[i].length !== 0) {
 							fishInPond[i].pop()
@@ -1016,7 +1016,7 @@ export default function createFishing(functions, lang, data, io) {
 				} else if (input === "5") {
 					for (let i = 0; i <= 6; i++) {
 						for (let j = 0; j < fishInPond[i].length; j++) {
-							data.gameState.dataSaver.money += Math.round(getRandomIncome() * getFreshnessMultiplier(fishInPond[i][j]))
+							data.gameState.dataSaver.money += Math.round(getRandomIncome(getFreshnessMultiplier(fishInPond[i][j])))
 						}
 						while (fishInPond[i].length !== 0) {
 							fishInPond[i].pop()
