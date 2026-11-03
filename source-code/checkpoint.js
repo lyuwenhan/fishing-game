@@ -35,11 +35,13 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 		while (true) {
 			let username = "";
 			let password = "";
-			if (data.enableUsername) {
+			if (data.enableUsername || data.enablePassword) {
 				await io.clear();
 				await io.print(lang.current.title);
 				await io.print();
-				await io.print(functions.capitalize(lang.current.checkpoint.login));
+				await io.print(functions.capitalize(lang.current.checkpoint.login))
+			}
+			if (data.enableUsername) {
 				await io.printnl(functions.capitalize(lang.current.checkpoint.username) + ": ");
 				username = await io.getline(false);
 				if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
