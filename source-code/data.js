@@ -1,4 +1,4 @@
-export default function createData(functions, enablePassword) {
+export default function createData(functions, enableUsername, enablePassword) {
 	const constant = functions.deepFreeze({
 		maxCatchSpeedLevel: 25,
 		minCatchSpeed: [50, 40, 40, 40, 30, 30, 30, 30, 20, 20, 10, 9, 7, 5, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1],
@@ -60,12 +60,6 @@ export default function createData(functions, enablePassword) {
 				rows: 100,
 				cols: 100
 			},
-			settings: {
-				skipStory: false,
-				forceUsername: "",
-				forceBlancPassword: false,
-				forceInstantOutput: false
-			},
 			requiredFunctions: {
 				write: async text => console.log(text),
 				loadGame: async () => ({
@@ -93,6 +87,7 @@ export default function createData(functions, enablePassword) {
 	}
 	return Object.freeze({
 		constant,
+		enableUsername,
 		enablePassword,
 		gameState: createGameState(),
 		createDataSaver,

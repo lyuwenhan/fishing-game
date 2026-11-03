@@ -78,7 +78,7 @@ export default function createIo(functions, lang, data) {
 	async function printnl(text, time = .02) {
 		await write("\x1b[?25l");
 		try {
-			if (!functions.isNumberBetween(data.gameState.dataSaver.textSpeed, 0, 1) || time <= 0 || data.gameState.settings.forceInstantOutput) {
+			if (!functions.isNumberBetween(data.gameState.dataSaver.textSpeed, 0, 1) || time <= 0) {
 				await write(text)
 			} else {
 				for (const char of String(text || "")) {

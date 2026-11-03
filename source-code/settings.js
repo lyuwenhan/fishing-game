@@ -1,15 +1,13 @@
 export default function createSettings(functions, lang, data, io) {
 	async function choose() {
 		await io.clear();
-		if (!data.gameState.settings.forceInstantOutput) {
-			await io.print(lang.current.settings.chooseSpeed);
-			await io.print(functions.listToChoice(lang.current.settings.speedName));
-			let c;
-			do {
-				c = await io.getch()
-			} while (!/[1-3]/.test(c));
-			data.gameState.dataSaver.textSpeed = Number(c) - 1
-		}
+		await io.print(lang.current.settings.chooseSpeed);
+		await io.print(functions.listToChoice(lang.current.settings.speedName));
+		let c;
+		do {
+			c = await io.getch()
+		} while (!/[1-3]/.test(c));
+		data.gameState.dataSaver.textSpeed = Number(c) - 1;
 		await io.clear();
 		for (const text of lang.current.settings.skills) {
 			await io.print(text)

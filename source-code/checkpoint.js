@@ -1,6 +1,15 @@
 export default function createCheckpoint(functions, lang, data, io, normalizeDataSaver) {
 	async function loadGame() {
-		const loadState = await (data.enablePassword ? data.gameState.requiredFunctions.loadGame(data.gameState.username, data.gameState.password) : data.gameState.requiredFunctions.loadGame(data.gameState.username));
+		let loadState;
+		if (data.enableUsername) {
+			if (data.enablePassword) {
+				loadState = await data.gameState.requiredFunctions.loadGame(data.gameState.username, data.gameState.password)
+			} else {
+				loadState = await data.gameState.requiredFunctions.loadGame(data.gameState.username)
+			}
+		} else {
+			loadState = await data.gameState.requiredFunctions.loadGame()
+		}
 		if (loadState?.code === 1) {
 			data.gameState.dataSaver = {
 				...data.createDataSaver(),
@@ -12,21 +21,26 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 	}
 	async function saveGame() {
 		normalizeDataSaver();
-		return data.enablePassword ? data.gameState.requiredFunctions.saveGame(data.gameState.username, data.gameState.password, data.gameState.dataSaver) : data.gameState.requiredFunctions.saveGame(data.gameState.username, data.gameState.dataSaver)
+		if (data.enableUsername) {
+			if (data.enablePassword) {
+				return data.gameState.requiredFunctions.saveGame(data.gameState.username, data.gameState.password, data.gameState.dataSaver)
+			} else {
+				return data.gameState.requiredFunctions.saveGame(data.gameState.username, data.gameState.dataSaver)
+			}
+		} else {
+			return data.gameState.requiredFunctions.saveGame(data.gameState.dataSaver)
+		}
 	}
 	async function login() {
 		while (true) {
 			let username = "";
 			let password = "";
-			await io.clear();
-			await io.print(lang.current.title);
-			await io.print();
-			await io.print(functions.capitalize(lang.current.checkpoint.login));
-			await io.printnl(functions.capitalize(lang.current.checkpoint.username) + ": ");
-			if (data.gameState.settings.forceUsername) {
-				username = data.gameState.settings.forceUsername;
-				await io.write(username + "\n")
-			} else {
+			if (data.enableUsername) {
+				await io.clear();
+				await io.print(lang.current.title);
+				await io.print();
+				await io.print(functions.capitalize(lang.current.checkpoint.login));
+				await io.printnl(functions.capitalize(lang.current.checkpoint.username) + ": ");
 				username = await io.getline(false);
 				if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
 					await io.print(lang.current.checkpoint.invalidUsername);
@@ -43,18 +57,14 @@ export default function createCheckpoint(functions, lang, data, io, normalizeDat
 			const isNew = userState.code === 2;
 			if (data.enablePassword) {
 				await io.printnl(functions.capitalize(lang.current.checkpoint.password) + ": ");
-				if (data.gameState.settings.forceBlancPassword) {
-					await io.write("\n")
-				} else {
-					password = await io.getline(true);
-					if (isNew) {
-						await io.printnl(functions.capitalize(lang.current.checkpoint.confirmPassword) + ": ");
-						let newPassword = await io.getline(true);
-						if (newPassword !== password) {
-							await io.print(lang.current.checkpoint.passwordNotMatch);
-							await functions.sleep(1);
-							continue
-						}
+				password = await io.getline(true);
+				if (isNew) {
+					await io.printnl(functions.capitalize(lang.current.checkpoint.confirmPassword) + ": ");
+					let newPassword = await io.getline(true);
+					if (newPassword !== password) {
+						await io.print(lang.current.checkpoint.passwordNotMatch);
+						await functions.sleep(1);
+						continue
 					}
 				}
 			}
