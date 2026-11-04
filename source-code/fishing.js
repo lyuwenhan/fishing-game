@@ -101,9 +101,9 @@ export default function createFishing(functions, lang, data, io) {
 		}
 		const price = getRandomIncome((isBigFish ? 2 : 1) * data.constant.fishValueMultipliers[fishType]);
 		if (fishType === 4 && isBigFish) {
-			await io.printa(lang.current.fishing.youCaughtA + fishColor[fishType] + lang.current.fishing.egg + ", " + lang.current.fishing.worth + "$" + price)
+			await io.printa(lang.current.fishing.youCaughtA + fishColor[fishType] + lang.current.fishing.eggFish + "\x1b[m, " + lang.current.fishing.worth + "$" + price)
 		} else {
-			await io.printa(lang.current.fishing.youCaughtA + fishColor[fishType] + lang.current.fishing.fishName[fishType] + (isBigFish ? lang.current.fishing.big : "") + lang.current.fishing.fish + ", " + lang.current.fishing.worth + "$" + price)
+			await io.printa(lang.current.fishing.youCaughtA + fishColor[fishType] + lang.current.fishing.fishName[fishType] + (isBigFish ? lang.current.fishing.big : "") + lang.current.fishing.fish + "\x1b[m, " + lang.current.fishing.worth + "$" + price)
 		}
 		fishInPond[fishType].push(10);
 		data.gameState.dataSaver.totalFishCaught++
