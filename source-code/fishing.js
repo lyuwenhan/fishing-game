@@ -105,7 +105,7 @@ export default function createFishing(functions, lang, data, io) {
 		} else {
 			await io.printa(lang.current.fishing.youCaughtA + fishColor[fishType] + lang.current.fishing.fishName[fishType] + (isBigFish ? lang.current.fishing.big : "") + lang.current.fishing.fish + "\x1b[m, " + lang.current.fishing.worth + "$" + price)
 		}
-		fishInPond[fishType].push(10);
+		fishInPond[fishType].push([10, price]);
 		data.gameState.dataSaver.totalFishCaught++
 	}
 	let lastWaitingMinTime = 0;
@@ -961,14 +961,14 @@ export default function createFishing(functions, lang, data, io) {
 			for (let i = 0; i <= 6; i++) {
 				await io.write(fishColor[i] + lang.current.fishing.fishName[i] + lang.current.fishing.fish + "\x1b[m\n");
 				for (let j = 0; j < fishInPond[i].length; j++) {
-					if (fishInPond[i][j] >= 8) {
+					if (fishInPond[i][j][0] >= 8) {
 						await io.write("\x1b[1;32m")
-					} else if (fishInPond[i][j] <= 2) {
+					} else if (fishInPond[i][j][0] <= 2) {
 						await io.write("\x1b[1;31m")
 					} else {
 						await io.write("\x1b[1m")
 					}
-					await io.write("    " + lang.current.fishing.freshness + ": " + fishInPond[i][j] + "\x1b[m\n")
+					await io.write("    " + lang.current.fishing.freshness + ": " + fishInPond[i][j][0] + "\x1b[m\n")
 				}
 				if (fishInPond[i].length === 0) {
 					await io.write("    " + lang.current.fishing.none + "\x1b[m\n")
@@ -979,10 +979,10 @@ export default function createFishing(functions, lang, data, io) {
 				if (input === "1") {
 					for (let i = 0; i <= 6; i++) {
 						for (let j = 0; j < fishInPond[i].length; j++) {
-							fishInPond[i][j] -= 1;
-							if (fishInPond[i][j] <= 0) {
+							fishInPond[i][j][0] -= 1;
+							if (fishInPond[i][j][0] <= 0) {
 								if (i !== 0) {
-									fishInPond[i - 1].push(10)
+									fishInPond[i - 1].push([10, fishInPond[i][j][1]])
 								}
 								for (let k = j + 1; k < fishInPond[i].length; k++) {
 									fishInPond[i][k - 1] = fishInPond[i][k]
@@ -1005,7 +1005,7 @@ export default function createFishing(functions, lang, data, io) {
 				} else if (input === "4") {
 					for (let i = 0; i <= 6; i++) {
 						for (let j = 0; j < fishInPond[i].length; j++) {
-							data.gameState.dataSaver.money += Math.round(getRandomIncome(getFreshnessMultiplier(fishInPond[i][j])))
+							data.gameState.dataSaver.money += Math.round(fishInPond[i][j][1] * getFreshnessMultiplier(fishInPond[i][j][0]))
 						}
 						while (fishInPond[i].length !== 0) {
 							fishInPond[i].pop()
@@ -1016,7 +1016,7 @@ export default function createFishing(functions, lang, data, io) {
 				} else if (input === "5") {
 					for (let i = 0; i <= 6; i++) {
 						for (let j = 0; j < fishInPond[i].length; j++) {
-							data.gameState.dataSaver.money += Math.round(getRandomIncome(getFreshnessMultiplier(fishInPond[i][j])))
+							data.gameState.dataSaver.money += Math.round(fishInPond[i][j][1] * getFreshnessMultiplier(fishInPond[i][j][0]))
 						}
 						while (fishInPond[i].length !== 0) {
 							fishInPond[i].pop()
