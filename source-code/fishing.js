@@ -828,7 +828,7 @@ export default function createFishing(functions, lang, data, io) {
 			for (let i = 0; i <= 6; i++) {
 				hasFishInPond[i] = Boolean(data.gameState.dataSaver.foodFish[i][1]);
 				if (hasFishInPond[i]) {
-					fishInPondChoices += i + ". " + lang.current.fishing.fishName[i] + lang.current.fishing.eatRoastedFish + ", "
+					fishInPondChoices += i + ". " + lang.current.fishing.fishName[i] + lang.current.fishing.roastFish + ", "
 				}
 			}
 			hasFishInPond[7] = true;

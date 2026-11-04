@@ -121,7 +121,7 @@ export function getCopy() {
 			eatRoastedFish: "食用烤鱼",
 			currentHunger: "当前饥饿度",
 			noOvenMenu: ["制作生鱼", "食用生鱼", exit],
-			ovenMenu: ["制作生鱼", "制作烤鱼", "烤制食物", "食用生鱼", "食用烤鱼", exit],
+			ovenMenu: ["制作生鱼", "制作烤鱼", "食用生鱼", "食用烤鱼", exit],
 			makeFoodAction: "按 A 减少, D 增加, 按 Enter 制作, 按 Backspace 退出",
 			makeRoastedFish: "制作烤鱼",
 			roasting: "烤制中",
