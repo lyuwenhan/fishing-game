@@ -5,7 +5,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content">
 		<title>Fishing Game</title>
-		<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1024' height='1024' viewBox='0 0 1024 1024'%3E%3Crect width='1024' height='1024' fill='%230F172A'/%3E%3Ctext x='512' y='512' fill='%23ffffff' font-family='Arial, Helvetica, sans-serif' font-size='600' font-weight='700' text-anchor='middle' dominant-baseline='central'%3E%26gt;O%3C/text%3E%3C/svg%3E">
+		<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Crect width='1024' height='1024' fill='%230F172A'/%3E%3Ctext x='512' y='512' fill='%23ffffff' font-family='Arial, Helvetica, sans-serif' font-size='600' font-weight='700' text-anchor='middle' dominant-baseline='central'%3E%26gt;O%3C/text%3E%3C/svg%3E">
 		<link rel="stylesheet" href="lib/xterm.min.css">
 		<script src="lib/xterm.min.js"></script>
 		<style>
@@ -32,6 +32,7 @@
 			html {
 				color: #fff;
 				font-size: large;
+				height: 100%;
 				overflow: hidden
 			}
 
@@ -39,7 +40,6 @@
 			body,
 			html {
 				background-color: #4e0e3b;
-				height: 100%;
 				margin: 0;
 				padding: 0
 			}
@@ -47,10 +47,11 @@
 			#terminal {
 				border: 0;
 				bottom: 0;
+				height: calc(100% - 60px);
 				left: 0;
 				position: fixed;
 				right: 0;
-				top: 0;
+				top: 60px;
 				width: 100%;
 				z-index: 1
 			}
@@ -126,23 +127,104 @@
 				padding: 10px
 			}
 
+			a {
+				text-decoration: none
+			}
+
+			nav {
+				align-items: center;
+				background-color: #2a83e9;
+				color: #fff;
+				font-size: medium;
+				gap: 5px;
+				height: 60px;
+				justify-content: flex-start;
+				left: 0;
+				padding: 0 50px;
+				position: absolute;
+				top: 0;
+				width: calc(100% - 100px);
+				z-index: 11
+			}
+
+			nav,
+			nav>ul {
+				display: flex
+			}
+
+			nav>ul {
+				background-color: #2a83e9
+			}
+
+			nav:not(:has(:hover)) ul {
+				display: none
+			}
+
+			nav>ul {
+				flex-direction: column;
+				margin: 0;
+				padding: 0;
+				position: absolute;
+				top: 100%
+			}
+
+			nav>ul>li {
+				display: block;
+				height: 60px;
+				list-style: none
+			}
+
+			nav>span,
+			nav>ul>li>a {
+				align-items: center;
+				color: #fff;
+				display: flex;
+				height: 100%;
+				padding: 0 10px
+			}
+
+			nav>span:hover , nav:has(ul:hover)>span{
+				background-color: #2677d5
+			}
+
+			nav>ul>li:hover>a {
+				background-color: #2060a9
+			}
+
+			nav>ul>li:active>a {
+				background-color: #2673cb
+			}
+
+			nav>ul>li>a[aria-current=true] {
+				background-color: #2165b4
+			}
+
 		</style>
 		<!-- @head -->
 	</head>
 
 	<body>
+		<nav>
+			<span>Languages</span>
+			<ul id="languages"></ul>
+		</nav>
 		<div id="terminal">
-			<div id="full"><svg id="onfull" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13">
+			<div id="full">
+				<svg id="onfull" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13">
 					<path fill="grey" d="M 0 0 L 0 13 L 13 13 L 13 0" />
 					<path fill="black" d="M 3 3 l 3 0 l 0 1 l -2 0 l 0 2 l -1 0 M 7 3 l 3 0 l 0 3 l -1 0 l 0 -2 l -2 0 M 3 7 l 1 0 l 0 2 l 2 0 l 0 1 l -3 0 M 9 7 l 1 0 l 0 3 l -3 0 l 0 -1 l 2 0" />
-				</svg> <svg id="onufull" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13">
+				</svg>
+				<svg id="onufull" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13">
 					<path fill="grey" d="M 0 0 L 0 13 L 13 13 L 13 0" />
 					<path fill="black" d="M 7 7 l 3 0 l 0 1 l -2 0 l 0 2 l -1 0 M 3 7 l 3 0 l 0 3 l -1 0 l 0 -2 l -2 0 M 7 3 l 1 0 l 0 2 l 2 0 l 0 1 l -3 0 M 5 3 l 1 0 l 0 3 l -3 0 l 0 -1 l 2 0" />
-				</svg></div>
+				</svg>
+			</div>
 		</div>
+		<script src="main.js"></script>
 		<script>
 			"import fishing";
-			const requestedLanguage = new URLSearchParams(window.location.search).get("lang");
+			const LANGUAGE_STORAGE_KEY = "fishing-language";
+			const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
 			const fontSize = window.innerWidth < 768 ? 12 : 18;
 			const term = new Terminal({
 				fontSize,
@@ -263,6 +345,25 @@
 					code: data[username] ? 1 : 2
 				}
 			}
+
+			function setLanguageMenu(languages, currentLanguage) {
+				const languageList = document.getElementById("languages");
+				const items = languages.map(language => {
+					if (language.code === currentLanguage) {
+						return
+					}
+					const item = document.createElement("li");
+					const link = document.createElement("a");
+					link.textContent = language.name;
+					link.addEventListener("click", () => {
+						window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language.code);
+						window.location.reload()
+					});
+					item.append(link);
+					return item
+				}).filter(Boolean);
+				languageList.replaceChildren(...items)
+			}
 			let langs = {
 				setLanguage: () => {}
 			};
@@ -270,14 +371,15 @@
 			(async () => {
 				while (true) {
 					const gameInstance = fishing.createGameInstance(text => term.write(text), loadGame, saveGame, hasSave, {
-						languageCode: requestedLanguage,
+						languageCode: savedLanguage,
 						enablePassword: false
 					});
 					langs = gameInstance.languages;
-					window.setLanguages?.(Object.entries(langs.langs).map(([code, language]) => ({
+					const languages = Object.entries(langs.langs).map(([code, language]) => ({
 						code,
 						name: language.name
-					})), langs.currentLangCode);
+					}));
+					setLanguageMenu(languages, langs.currentLangCode);
 					gameInstance.setConsoleSize({
 						cols: term.cols,
 						rows: term.rows
