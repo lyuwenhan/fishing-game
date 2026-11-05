@@ -4,7 +4,7 @@ export default function createFunctions() {
 	}
 
 	function isNumberBetween(num, l, r) {
-		return num >= l && num <= r
+		return !Number.isFinite(num) || num >= l && num <= r
 	}
 	async function sleep(time) {
 		return new Promise(resolve => setTimeout(resolve, (Number.isFinite(time) && time > 0 ? time : 0) * 1e3))

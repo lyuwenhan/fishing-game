@@ -41,7 +41,7 @@ export default function createSettings(functions, lang, data, io) {
 		let c;
 		do {
 			c = Number(await io.getch())
-		} while (!functions.isNumberBetween(c, 1, 4));
+		} while (!Number.isInteger(c) || !functions.isNumberBetween(c, 1, 4));
 		if (c <= 3) {
 			data.gameState.dataSaver.textSpeed = c - 1
 		}

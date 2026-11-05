@@ -75,7 +75,7 @@ export default function createAdventure(functions, lang, data, io) {
 		let idx;
 		do {
 			idx = Number(await io.getch()) - 1
-		} while (idx < 0 || idx >= choose.length);
+		} while (!Number.isInteger(idx) || idx < 0 || idx >= choose.length);
 		if (cnext[idx]) {
 			await io.clear();
 			await io.printa(cnext[idx])
